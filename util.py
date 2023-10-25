@@ -50,7 +50,7 @@ def ster_temperature(base, low, up):
 # 干燥区间温度函数
 def dry_temperature(index, base):
     temperature = 124.96 * np.power(index + 1, -0.085)
-    temperature = random_float(temperature, 0.2, 0.2)
+    temperature = random_float(temperature, 0.5, 0.2)
     if temperature > base:
         temperature = base
     return float('%.1f' % temperature)
@@ -59,9 +59,11 @@ def dry_temperature(index, base):
 # 冷却区间温度函数
 def cool_temperature(index, base):
     temperature = -3.3393 * (index + 1) + 103.49
-    temperature = random_float(temperature, 0.2, 0.2)
+    temperature = random_float(temperature, 0.5, 0.2)
     if temperature > base:
         temperature = base
+    if temperature < 80.0:
+        temperature = random_float(80.0, 0, 0.2)
     return float('%.1f' % temperature)
 
 
