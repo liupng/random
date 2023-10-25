@@ -78,7 +78,9 @@ if __name__ == '__main__':
         cool_durative_time = input('请输入冷却持续时间(秒, 默认360s, 6分钟):')
         if cool_durative_time == '':
             cool_durative_time = 360
-        #cool_end_temperature = input('请输入冷却截止温度(摄氏度):')
+        cool_end_temperature = input('请输入冷却截止温度(摄氏度, 默认80):')
+        if cool_end_temperature == '':
+            cool_end_temperature = 80.0
 
     file_name = datetime.datetime.now().strftime('%Y%m%d%H%M%S') + '_' + stages.get(type) + "." + file_format.get(format)
 
@@ -97,7 +99,8 @@ if __name__ == '__main__':
           '灭菌持续时间:' + str(sterilize_durative_time) + '秒\r\n' if int(sterilize_durative_time) > 0 else '',
           '干燥持续时间:' + str(dry_durative_time) + '秒\r\n' if int (dry_durative_time) > 0 else '',
           '冷却持续时间:' + str(cool_durative_time) + '秒\r\n' if int (cool_durative_time) > 0 else ''
-          #'冷却截止温度:' + str(cool_end_temperature) + '摄氏度\r\n' if cool_end_temperature is not None else ''
+                                                                                                    '冷却截止温度:' + str(
+              cool_end_temperature) + '摄氏度\r\n' if cool_end_temperature is not None else ''
           )
     go_on = input("是否开始生成?(Y-开始, N-终止):")
     if go_on == 'N':
@@ -169,7 +172,8 @@ if __name__ == '__main__':
                 float(sterilize_temperature),
                 float(sterilize_temperature_fluctuate_range),
                 int(sterilize_pressure),
-                int(sterilize_pressure_fluctuate_range)
+                int(sterilize_pressure_fluctuate_range),
+                float(cool_end_temperature)
             )
         case _:
             gen.all(
@@ -183,7 +187,8 @@ if __name__ == '__main__':
                 float(sterilize_temperature),
                 float(sterilize_temperature_fluctuate_range),
                 int(sterilize_pressure),
-                int(sterilize_pressure_fluctuate_range)
+                int(sterilize_pressure_fluctuate_range),
+                float(cool_end_temperature)
             )
 
     file.close()

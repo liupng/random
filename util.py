@@ -48,23 +48,40 @@ def ster_temperature(base, low, up):
 
 
 # 干燥区间温度函数
-def dry_temperature(index, base):
-    temperature = 124.96 * np.power(index + 1, -0.085)
+def dry_temperature(index, base, direct, cycle=0):
+    temperature = 124.96 * np.power(index + 1 - 12 * cycle, -0.085)
     temperature = random_float(temperature, 0.5, 0.2)
     if temperature > base:
         temperature = base
-    return float('%.1f' % temperature)
+        return float('%.1f' % temperature), direct, cycle
+    # 低于98度,转升温
+    if direct == 0 and temperature <= 98.0:
+        direct = 1
+    if direct > 0:
+        direct += 1
+        temperature = 4.3359 * np.log(direct) + 98.205
+        # 升温到104度, 继续转降温
+        if temperature > 104.0:
+            direct = 0
+            cycle += 1
+    temperature = random_float(temperature, 0.5, 0.2)
+    return float('%.1f' % temperature), direct, cycle
 
 
 # 冷却区间温度函数
-def cool_temperature(index, base):
-    temperature = -3.3393 * (index + 1) + 103.49
+def cool_temperature(index, base, cool_end_temperature):
+    if cool_end_temperature == 50.0:
+        temperature = -13.33 * np.log(index + 1) + 103.86
+    else:
+        temperature = -3.3393 * (index + 1) + 103.49
     temperature = random_float(temperature, 0.5, 0.2)
+    abort = False
     if temperature > base:
         temperature = base
-    if temperature < 80.0:
-        temperature = random_float(80.0, 0, 0.2)
-    return float('%.1f' % temperature)
+    if temperature < cool_end_temperature:
+        temperature = random_float(cool_end_temperature, 0, 0.2)
+        abort = True
+    return float('%.1f' % temperature), abort
 
 
 # 计算F0值
@@ -125,5 +142,8 @@ if __name__ == '__main__':
 
     # print(heat_temperature(1, 121.0))
 
-    print(dry_temperature(60, 121.0))
-
+    index = 50
+    print(float(index) == 50.0)
+    # print(-13.33 * np.log(index) + 103.86)
+    # print(-0.0003 * np.power(index, 3) + 0.0383 * np.power(index, 2) - 2.0323 * index + 94.058)
+    # print(-1 * np.power(10, 0.00001 * np.power(index, 4)) - 0.0016 * np.power(index, 3) + 0.0919 * np.power(index, 2) - 2.8213 * index + 96.801)

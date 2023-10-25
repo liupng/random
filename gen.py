@@ -62,6 +62,8 @@ def dry(file, base_time, data_cycle, dry_durative_time, sterilize_temperature, s
     print('开始生成干燥阶段数据')
     count = section(dry_durative_time, data_cycle)
     data = []
+    direct = 0
+    cycle = 0
     base_temperature = random_float(sterilize_temperature, sterilize_temperature_fluctuate_range, 0)
     # 生成数据
     for i in range(0, count + 1):
@@ -69,7 +71,7 @@ def dry(file, base_time, data_cycle, dry_durative_time, sterilize_temperature, s
             time = base_time + timedelta(seconds = random_int(3, 0, 5))
         else:
             time = base_time + timedelta(seconds = i * data_cycle)
-        temperature = dry_temperature(i, base_temperature)
+        temperature, direct, cycle = dry_temperature(i, base_temperature, direct, cycle)
         pressure = random_int(sterilize_pressure, start = -1 * sterilize_pressure_fluctuate_range, end = sterilize_pressure_fluctuate_range)
         last_f0 = cal_f0(data, last_f0, sterilize_temperature, temperature, data_cycle)
         data.append(Sterilize('干燥', time, temperature, pressure, last_f0))
@@ -80,7 +82,7 @@ def dry(file, base_time, data_cycle, dry_durative_time, sterilize_temperature, s
 
 # 冷却阶段
 def cool(file, base_time, data_cycle, cool_durative_time, sterilize_temperature, sterilize_temperature_fluctuate_range,
-         sterilize_pressure, sterilize_pressure_fluctuate_range, last_f0 = 0.0):
+         sterilize_pressure, sterilize_pressure_fluctuate_range, cool_end_temperature, last_f0=0.0):
     print('开始生成冷却阶段数据')
     count = section(cool_durative_time, data_cycle)
     data = []
@@ -91,10 +93,12 @@ def cool(file, base_time, data_cycle, cool_durative_time, sterilize_temperature,
             time = base_time + timedelta(seconds = random_int(3, 0, 5))
         else:
             time = base_time + timedelta(seconds = i * data_cycle)
-        temperature = cool_temperature(i, base_temperature)
+        temperature, abort = cool_temperature(i, base_temperature, cool_end_temperature)
         pressure = random_int(sterilize_pressure, start = -1 * sterilize_pressure_fluctuate_range, end = 0)
         last_f0 = cal_f0(data, last_f0, sterilize_temperature, temperature, data_cycle)
         data.append(Sterilize('冷却', time, temperature, pressure, last_f0))
+        if abort:
+            break
     # 输出到文件中
     writer.output(file, data, '冷却')
     return data
@@ -139,7 +143,7 @@ def end(file, base_time, data_cycle, sterilize_temperature, exsufflate_temperatu
 # 全部阶段
 def all(file, base_time, data_cycle, heat_up_durative_time, sterilize_durative_time, dry_durative_time,
         cool_durative_time, sterilize_temperature, sterilize_temperature_fluctuate_range, sterilize_pressure,
-        sterilize_pressure_fluctuate_range):
+        sterilize_pressure_fluctuate_range, cool_end_temperature):
     # 升温
     data = heat_up(file, base_time, data_cycle, heat_up_durative_time, sterilize_temperature,
                    sterilize_temperature_fluctuate_range, sterilize_pressure, sterilize_pressure_fluctuate_range)
@@ -166,7 +170,7 @@ def all(file, base_time, data_cycle, heat_up_durative_time, sterilize_durative_t
     base_temperatue = data[-1].temperature
     last_f0 = last_data.f0
     data = cool(file, base_time, data_cycle, cool_durative_time, base_temperatue, sterilize_temperature_fluctuate_range,
-         sterilize_pressure, sterilize_pressure_fluctuate_range, last_f0)
+                sterilize_pressure, sterilize_pressure_fluctuate_range, cool_end_temperature, last_f0)
 
     # 排气
     last_data = data[-1]
